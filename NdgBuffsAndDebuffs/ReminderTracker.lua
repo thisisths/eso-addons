@@ -53,13 +53,16 @@ function ReminderTracker:CheckUltimate(frame)
     end
 
     local isReady = (ultCost > 0 and current >= ultCost)
+    local icon = GetSlotTexture(ultSlotIndex)
 
     if isReady and not self.reminderAuras['ultimate'] then
-        local icon = GetSlotTexture(ultSlotIndex)
         self.reminderAuras['ultimate'] = frame:AddReminder('ultimate', 'Ultimate Ready', icon)
     elseif not isReady and self.reminderAuras['ultimate'] then
         self.reminderAuras['ultimate']:Release()
         self.reminderAuras['ultimate'] = nil
+    elseif isReady and self.reminderAuras['ultimate'] then
+        -- Update icon when bar swap changes the slotted ultimate
+        self.reminderAuras['ultimate'].icon:SetTexture(icon)
     end
 end
 

@@ -1,0 +1,65 @@
+local Addon = _G['NdgBuffsAndDebuffs']
+
+Addon.defaults = {
+    locked = true,
+    shortBuffThreshold = 30,
+
+    groups = {
+        [1] = { -- Reminders
+            enabled     = true,
+            displayMode = Addon.DISPLAY_ICON,
+            size        = 40,
+            growth      = Addon.GROW_RIGHT,
+            textSide    = Addon.TEXT_RIGHT,
+            position    = { point = BOTTOM, x = 0, y = -200 },
+            disableUltimate = false,
+            disableFood     = false,
+            disablePotion   = false,
+        },
+        [2] = { -- Long Duration Buffs
+            enabled     = true,
+            displayMode = Addon.DISPLAY_BOTH,
+            size        = 40,
+            growth      = Addon.GROW_DOWN,
+            textSide    = Addon.TEXT_RIGHT,
+            position    = { point = TOPRIGHT, x = -100, y = 100 },
+            blacklist   = '',
+        },
+        [3] = { -- Short Duration Buffs
+            enabled     = true,
+            displayMode = Addon.DISPLAY_ICON,
+            size        = 40,
+            growth      = Addon.GROW_RIGHT,
+            textSide    = Addon.TEXT_RIGHT,
+            position    = { point = BOTTOM, x = 0, y = -100 },
+            blacklist   = '',
+        },
+        [4] = { -- Debuffs
+            enabled     = true,
+            displayMode = Addon.DISPLAY_ICON,
+            size        = 40,
+            growth      = Addon.GROW_RIGHT,
+            textSide    = Addon.TEXT_RIGHT,
+            position    = { point = BOTTOM, x = 0, y = -60 },
+            blacklist   = '',
+        },
+        [5] = { -- Target Buffs
+            enabled     = true,
+            displayMode = Addon.DISPLAY_ICON,
+            size        = 40,
+            growth      = Addon.GROW_RIGHT,
+            textSide    = Addon.TEXT_RIGHT,
+            position    = { point = TOP, x = 0, y = 120 },
+            blacklist   = '',
+        },
+        [6] = { -- Target Debuffs
+            enabled     = true,
+            displayMode = Addon.DISPLAY_ICON,
+            size        = 40,
+            growth      = Addon.GROW_RIGHT,
+            textSide    = Addon.TEXT_RIGHT,
+            position    = { point = TOP, x = 0, y = 160 },
+            blacklist   = '',
+        },
+    },
+}

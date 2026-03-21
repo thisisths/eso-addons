@@ -129,7 +129,7 @@ function ReminderTracker:CheckFood(frame)
               buffType, effectType, abilityType, statusEffectType, abilityId, canClickOff,
               castByPlayer = GetUnitBuffInfo('player', i)
 
-        if Addon.IsFoodBuff(buffType, timeStarted, timeEnding) then
+        if Addon.IsFoodBuff(buffType, abilityType, timeStarted, timeEnding, canClickOff) then
             hasFood = true
             break
         end
@@ -138,7 +138,7 @@ function ReminderTracker:CheckFood(frame)
     if not hasFood and not self.reminderAuras['food'] then
         self.reminderAuras['food'] = frame:AddReminder(
             'food',
-            'No Food Buff',
+            'No Food/Drink',
             '/esoui/art/icons/ability_provisioner_001.dds'
         )
     elseif hasFood and self.reminderAuras['food'] then

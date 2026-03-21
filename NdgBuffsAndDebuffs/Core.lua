@@ -34,22 +34,17 @@ end
 
 ---------------------------------------------------------------------------
 -- Food/drink buff detection helper (used by ReminderTracker)
--- Checks multiple signals: abilityType, duration, and canClickOff
+-- Uses effectType (BUFF_EFFECT_TYPE_BUFF) and long duration as signals
 ---------------------------------------------------------------------------
 local FOOD_MIN_DURATION = 600  -- 10 minutes; all food/drink buffs are typically 30+ min
 
-function Addon.IsFoodBuff(buffType, abilityType, timeStarted, timeEnding, canClickOff)
+function Addon.IsFoodBuff(effectType, timeStarted, timeEnding)
     -- Must be a buff, not a debuff
-    if buffType == BUFF_EFFECT_TYPE_DEBUFF then return false end
+    if effectType == BUFF_EFFECT_TYPE_DEBUFF then return false end
 
-    -- Primary check: abilityType matches food/drink bonus types
-    if abilityType == ABILITY_TYPE_BONUS or abilityType == ABILITY_TYPE_NONCOMBATBONUS then
-        return true
-    end
-
-    -- Fallback: long-duration, clickable buff is likely food/drink
+    -- Food/drink buffs always have very long durations (30+ min)
     local duration = timeEnding - timeStarted
-    if duration >= FOOD_MIN_DURATION and canClickOff then
+    if duration >= FOOD_MIN_DURATION then
         return true
     end
 

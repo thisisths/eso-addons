@@ -115,7 +115,7 @@ function BuffTracker:OnPlayerActivated()
               castByPlayer = GetUnitBuffInfo('player', i)
 
         if buffName and buffName ~= '' and timeEnding > GetFrameTimeSeconds() then
-            self:AddToFrame('player', buffName, timeStarted, timeEnding, iconFilename, abilityId, stackCount, buffType)
+            self:AddToFrame('player', buffName, timeStarted, timeEnding, iconFilename, abilityId, stackCount, effectType)
         end
     end
 
@@ -151,7 +151,7 @@ function BuffTracker:OnEffectChanged(eventCode, changeType, effectSlot, effectNa
         return
     end
 
-    self:AddToFrame(unitTag, effectName, beginTime, endTime, iconName, abilityId, stackCount, buffType)
+    self:AddToFrame(unitTag, effectName, beginTime, endTime, iconName, abilityId, stackCount, effectType)
 end
 
 ---------------------------------------------------------------------------
@@ -182,7 +182,7 @@ function BuffTracker:OnTargetChanged()
               castByPlayer = GetUnitBuffInfo('reticleover', i)
 
         if buffName and buffName ~= '' then
-            self:AddToFrame('reticleover', buffName, timeStarted, timeEnding, iconFilename, abilityId, stackCount, buffType)
+            self:AddToFrame('reticleover', buffName, timeStarted, timeEnding, iconFilename, abilityId, stackCount, effectType)
         end
     end
 

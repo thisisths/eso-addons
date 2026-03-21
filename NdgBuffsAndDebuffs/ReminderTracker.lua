@@ -129,7 +129,7 @@ function ReminderTracker:CheckFood(frame)
               buffType, effectType, abilityType, statusEffectType, abilityId, canClickOff,
               castByPlayer = GetUnitBuffInfo('player', i)
 
-        if Addon.IsFoodBuff(buffType, abilityType, timeStarted, timeEnding, canClickOff) then
+        if Addon.IsFoodBuff(effectType, timeStarted, timeEnding) then
             hasFood = true
             break
         end

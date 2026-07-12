@@ -1,0 +1,22 @@
+## Title: NdgCrown
+## Description: Beam and direction arrow for the group leader and for base-game target marks (follow leaders across groups).
+## Author: Ndg
+## Version: 0.2.0
+## AddOnVersion: 2
+## APIVersion: 101050 101051
+## SavedVariables: NdgCrownDB
+## DependsOn: LibAddonMenu-2.0>=30
+## OptionalDependsOn: LibDebugLogger
+
+; This Add-on is not created by, affiliated with or sponsored by ZeniMax Media Inc. or its affiliates.
+; The Elder Scrolls® and related logos are registered trademarks or trademarks of ZeniMax Media Inc.
+; in the United States and/or other countries. All rights reserved.
+; You can read the full terms at https://account.elderscrollsonline.com/add-on-terms
+
+Constants.lua
+Defaults.lua
+Tracker.lua
+Beam.lua
+Arrow.lua
+Core.lua
+Settings.lua

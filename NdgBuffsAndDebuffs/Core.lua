@@ -101,11 +101,19 @@ end
 function Addon.UpdateAllTimers()
     local now = GetFrameTimeSeconds()
     for controlId, aura in pairs(Addon.activeTimedAuras) do
-        local remaining = aura.finish - now
-        if remaining <= 0 then
-            aura:Release()
+        if aura.expired then
+            -- Lingering in the red "0s" state; release once the linger elapses
+            if now >= aura.expireAt then
+                aura:Release()
+            end
         else
-            aura:UpdateTimerLabel(remaining)
+            local remaining = aura.finish - now
+            if remaining <= 0 then
+                -- Ran out: linger for a moment showing red "0s" before removal
+                aura:Expire(now)
+            else
+                aura:UpdateTimerLabel(remaining)
+            end
         end
     end
 end

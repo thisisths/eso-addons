@@ -18,6 +18,8 @@ NdgBuffsAndDebuffs organizes buff and debuff information into six independent di
 - **Target Buffs** - Buffs on your current target
 - **Target Debuffs** - Debuffs on your current target
 
+Within a group, the buff that runs out next always sits at the growing end of the list, so entries drop off the end without the rest shifting around. A buff that just ran out lingers for a moment showing a red `0s` instead of vanishing instantly — if it gets reapplied in that window, its timer simply resumes.
+
 ### Per-Group Settings
 
 Each display group can be individually configured:
@@ -41,13 +43,15 @@ Each display group can be individually configured:
 - **Short Buff Threshold** - Configure the duration cutoff (in seconds) between short and long buff groups.
 - **Slash command**: `/ndgbuffs lock` and `/ndgbuffs unlock`
 
-## Screenshots
+## Screenshot
 
-*Coming soon*
+![Buff group with icons, names and timers on the left; reminders showing Potion Ready and Ultimate Ready on the right](docs/buffs.png)
+
+A buff group on the left with icons, names and remaining time — the red `0s` entries at the top just ran out and are lingering briefly before removal. On the right, the reminder group shows "Potion Ready" and "Ultimate Ready".
 
 ## Installation
 
-1. Copy the filse into a `NdgBuffsAndDebuffs` folder into your `Elder Scrolls Online/live/AddOns/` directory
+1. Copy the files into a `NdgBuffsAndDebuffs` folder inside your `Elder Scrolls Online/live/AddOns/` directory
 2. Ensure the required libraries are installed (see below)
 3. Enable the addon in the ESO addon manager
 

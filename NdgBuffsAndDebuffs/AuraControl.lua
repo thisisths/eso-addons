@@ -51,6 +51,7 @@ function AuraControl:Acquire(parentFrame)
     ctrl.Configure        = AuraControl.Configure
     ctrl.Update           = AuraControl.Update
     ctrl.UpdateTimerLabel = AuraControl.UpdateTimerLabel
+    ctrl.Expire           = AuraControl.Expire
     ctrl.Release          = AuraControl.Release
 
     ctrl:Configure(db)
@@ -121,6 +122,11 @@ function AuraControl:Initialize(auraName, unitTag, beginTime, endTime, iconTextu
     self.abilityId   = abilityId
     self.stackCount  = stackCount or 0
     self.isReminder  = isReminder or false
+    self.expired     = false
+    self.expireAt    = nil
+
+    -- Reset timer colour (a pooled control may have expired red still set)
+    self.timer:SetColor(1, 1, 1, 1)
 
     self.icon:SetTexture(iconTexture)
 
@@ -154,6 +160,13 @@ function AuraControl:Update(beginTime, endTime, stackCount)
     self.start  = beginTime
     self.finish = endTime
 
+    -- Reapplied within its linger window: revive from the expired "0s" state
+    if self.expired then
+        self.expired  = false
+        self.expireAt = nil
+        self.timer:SetColor(1, 1, 1, 1)
+    end
+
     if stackCount and stackCount ~= self.stackCount then
         self.stackCount = stackCount
         local displayName = self.auraName
@@ -184,10 +197,25 @@ function AuraControl:UpdateTimerLabel(remaining)
 end
 
 ---------------------------------------------------------------------------
+-- Expire: the aura ran out. Keep it visible for a short linger period,
+-- showing a red "0s", before it is finally released by the shared timer.
+-- The control stays in place (it is already at the growing end, so nothing
+-- moves) and remains in the lookup so a reapplication can revive it.
+---------------------------------------------------------------------------
+function AuraControl:Expire(now)
+    self.expired  = true
+    self.expireAt = (now or GetFrameTimeSeconds()) + Addon.EXPIRE_LINGER
+    self.timer:SetText('0s')
+    self.timer:SetColor(1, 0.2, 0.2, 1)
+end
+
+---------------------------------------------------------------------------
 -- Release aura back to pool
 ---------------------------------------------------------------------------
 function AuraControl:Release()
     self:SetHidden(true)
+    self.expired  = false
+    self.expireAt = nil
 
     -- Remove from shared timer
     Addon.activeTimedAuras[self.controlId] = nil

@@ -106,7 +106,11 @@ function DisplayFrame:UpdateLayout()
     local size    = db.size
     local padding = 4
 
-    -- Sort: reminders first, then by remaining time (ascending)
+    -- Sort: reminders first (at the static anchor end), then timed auras by
+    -- DESCENDING remaining time. Index 1 sits at the anchor (offset 0), so the
+    -- longest-remaining aura is static and the soon-to-expire ones pile up at
+    -- the growing end -- when one runs out it drops off that end without
+    -- shifting the stable auras. This holds for all four growth directions.
     local now = GetFrameTimeSeconds()
     table.sort(self.aurasSorted, function(a, b)
         -- Reminders always sort first
@@ -116,8 +120,8 @@ function DisplayFrame:UpdateLayout()
         if a.isReminder and b.isReminder then
             return (a.auraName or '') < (b.auraName or '')
         end
-        -- Both timed: ascending remaining time
-        return (a.finish - now) < (b.finish - now)
+        -- Both timed: descending remaining time (longest at the anchor end)
+        return (a.finish - now) > (b.finish - now)
     end)
 
     -- Compute effective entry size based on display mode

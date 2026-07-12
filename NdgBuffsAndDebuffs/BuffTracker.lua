@@ -140,8 +140,15 @@ function BuffTracker:OnEffectChanged(eventCode, changeType, effectSlot, effectNa
     if changeType == EFFECT_RESULT_FADED then
         Addon.auraLookup[unitTag] = Addon.auraLookup[unitTag] or {}
         local existingAura = Addon.auraLookup[unitTag][abilityId]
-        if existingAura then
-            existingAura:Release()
+        if existingAura and not existingAura.expired then
+            local now = GetFrameTimeSeconds()
+            if existingAura.finish - now <= 0.35 then
+                -- Reached (roughly) its end: let it run out and linger as "0s"
+                existingAura:Expire(now)
+            else
+                -- Faded early (cleansed, target switch, replaced): remove now
+                existingAura:Release()
+            end
         end
         return
     end

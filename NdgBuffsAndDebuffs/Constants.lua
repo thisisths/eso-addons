@@ -53,3 +53,6 @@ Addon.TEXT_LEFT  = 2
 
 -- Timer update rate (ms)
 Addon.UPDATE_RATE = 100
+
+-- How long an expired aura lingers (showing a red "0s") before removal (seconds)
+Addon.EXPIRE_LINGER = 1.0

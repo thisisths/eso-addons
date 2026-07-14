@@ -4,7 +4,7 @@ local Addon = NdgCrown
 
 Addon.NAME       = 'NdgCrown'
 Addon.SLASH      = '/ndgcrown'
-Addon.VERSION    = '0.2.0'   -- keep in sync with ## Version in the manifest
+Addon.VERSION    = '0.4.0'   -- keep in sync with ## Version in the manifest
 Addon.DB_VERSION = 1         -- bumping this WIPES saved variables
 
 Addon.BEAM_TEXTURE  = 'NdgCrown/Art/beam.dds'

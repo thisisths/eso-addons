@@ -29,7 +29,7 @@ function Arrow.Initialize()
     HUD_SCENE:AddFragment(fragment)
     HUD_UI_SCENE:AddFragment(fragment)
 
-    for _, target in ipairs(Addon.TARGETS) do
+    for i, target in ipairs(Addon.TARGETS) do
         local texture = wm:CreateControl(nil, tlw, CT_TEXTURE)
         texture:SetTexture(Addon.ARROW_TEXTURE)
         texture:SetHidden(true)
@@ -40,20 +40,47 @@ function Arrow.Initialize()
         label:SetAnchor(TOP, texture, BOTTOM, 0, -4)
         label:SetHidden(true)
 
+        -- when arrows overlap, the leader (crown) arrow must draw on top of
+        -- the mark arrows; each label sits above its own texture because it
+        -- is created later at the same draw level
+        local drawLevel = target.key == 'leader' and 100 or i
+        texture:SetDrawLevel(drawLevel)
+        label:SetDrawLevel(drawLevel)
+
         arrows[target.key] = { texture = texture, label = label }
         shown[target.key] = false
     end
 end
 
--- Shared placement: rotation is the direction relative to the camera view
--- (0 = straight ahead), size in px, labelText nil hides the label.
-local function PlaceArrow(targetKey, rotation, size, labelText, ageAlpha)
+-- distance in meters; rotation math needs the raw player->target world deltas
+function Arrow.Show(targetKey, deltaX, deltaZ, distance, cameraHeading)
     local general = Addon.db.general
     local settings = Addon.db.targets[targetKey].arrow
     local arrow = arrows[targetKey]
 
+    -- per-target override replaces the global size/distance values
+    local sizeClose, sizeFar, minDistance, maxDistance, radius
+    if settings.override then
+        sizeClose, sizeFar = settings.sizeClose, settings.sizeFar
+        minDistance, maxDistance = settings.minDistance, settings.maxDistance
+        radius = settings.radius
+    else
+        sizeClose, sizeFar = general.arrowSizeClose, general.arrowSizeFar
+        minDistance, maxDistance = general.arrowMinDistance, general.arrowMaxDistance
+        radius = general.arrowRadius
+    end
+
+    -- angle the arrow must point at, relative to the camera view
+    local rotation = TWO_PI - NormalizeAngle(cameraHeading - math.atan2(deltaX, deltaZ))
+
+    -- size grows with distance between min and max
+    local range = math.max(1, maxDistance - minDistance)
+    local t = (distance - minDistance) / range
+    if t < 0 then t = 0 elseif t > 1 then t = 1 end
+    local size = (sizeClose + (sizeFar - sizeClose) * t) * 2
+
     -- orbit position around the reticle
-    local orbit = general.arrowRadius + size / 2
+    local orbit = radius + size / 2
     local offsetX = math.sin(math.pi + rotation) * orbit
     local offsetY = math.cos(math.pi + rotation) * orbit
 
@@ -63,12 +90,12 @@ local function PlaceArrow(targetKey, rotation, size, labelText, ageAlpha)
     texture:ClearAnchors()
     texture:SetAnchor(CENTER, tlw, CENTER, offsetX, offsetY)
     local color = settings.color
-    texture:SetColor(color.r, color.g, color.b, ageAlpha)
+    texture:SetColor(color.r, color.g, color.b, 1)
 
     local label = arrow.label
-    if labelText then
-        label:SetText(labelText)
-        label:SetColor(color.r, color.g, color.b, ageAlpha)
+    if general.showDistanceLabel then
+        label:SetText(string.format('%.0fm', distance))
+        label:SetColor(color.r, color.g, color.b, 1)
         label:SetHidden(false)
     else
         label:SetHidden(true)
@@ -78,34 +105,6 @@ local function PlaceArrow(targetKey, rotation, size, labelText, ageAlpha)
         texture:SetHidden(false)
         shown[targetKey] = true
     end
-end
-
--- distance in meters; rotation math needs the raw player->target world deltas
-function Arrow.Show(targetKey, deltaX, deltaZ, distance, cameraHeading, ageAlpha)
-    local general = Addon.db.general
-
-    -- angle the arrow must point at, relative to the camera view
-    local rotation = TWO_PI - NormalizeAngle(cameraHeading - math.atan2(deltaX, deltaZ))
-
-    -- size grows with distance between min and max
-    local range = math.max(1, general.arrowMaxDistance - general.arrowMinDistance)
-    local t = (distance - general.arrowMinDistance) / range
-    if t < 0 then t = 0 elseif t > 1 then t = 1 end
-    local size = (general.arrowSizeClose + (general.arrowSizeFar - general.arrowSizeClose) * t) * 2
-
-    local labelText = general.showDistanceLabel and string.format('%.0fm', distance) or nil
-    PlaceArrow(targetKey, rotation, size, labelText, ageAlpha)
-end
-
--- Direction-only display from a compass bearing: the camera heading recorded
--- the last time the mark's compass pin crossed the compass center. Distance
--- is unknown, so the size is fixed and the label shows the bearing's age.
-function Arrow.ShowBearing(targetKey, bearingHeading, cameraHeading, ageSeconds, ageAlpha)
-    local general = Addon.db.general
-    local rotation = TWO_PI - NormalizeAngle(cameraHeading - bearingHeading)
-    local size = general.arrowSizeClose + general.arrowSizeFar
-    local labelText = general.showDistanceLabel and string.format('%.0fs', ageSeconds) or nil
-    PlaceArrow(targetKey, rotation, size, labelText, ageAlpha)
 end
 
 function Arrow.Hide(targetKey)

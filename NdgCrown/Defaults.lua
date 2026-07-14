@@ -15,13 +15,13 @@ local defaults = {
         arrowRadius = 65,          -- px: how far the arrow orbits from the reticle
         arrowHideBelow = 5,        -- meters; 0 = never hide
         showDistanceLabel = true,
-        markTimeout = 60,          -- seconds a mark position stays valid after last seen
     },
     targets = {},
 }
 
 for _, target in ipairs(Addon.TARGETS) do
     local isLeader = target.key == 'leader'
+    local g = defaults.general
     defaults.targets[target.key] = {
         beam = {
             enabled = isLeader,
@@ -30,6 +30,15 @@ for _, target in ipairs(Addon.TARGETS) do
         arrow = {
             enabled = isLeader,
             color = { r = target.color.r, g = target.color.g, b = target.color.b },
+            -- per-target size/distance values; mirror the global Arrow
+            -- defaults and are only used while override is on
+            override = false,
+            sizeClose = g.arrowSizeClose,
+            sizeFar = g.arrowSizeFar,
+            minDistance = g.arrowMinDistance,
+            maxDistance = g.arrowMaxDistance,
+            radius = g.arrowRadius,
+            hideBelow = g.arrowHideBelow,
         },
     }
 end

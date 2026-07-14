@@ -50,34 +50,27 @@ function Addon.OnUpdate()
         local beamDrawn, arrowDrawn = false, false
 
         if entry then
-            local ageAlpha = Tracker.GetAgeAlpha(key, nowMs)
-            if ageAlpha > 0 then
+            -- the beam marks a fixed spot, so it may linger on the last
+            -- known position for a while (alpha fades out toward the end)
+            if settings.beam.enabled then
+                local beamAlpha = Tracker.GetBeamAlpha(key, nowMs)
+                if beamAlpha > 0 then
+                    Beam.Show(key, entry.wx, entry.wy, entry.wz, cameraHeading, beamAlpha)
+                    beamDrawn = true
+                end
+            end
+
+            -- the arrow only shows while the position is live: pointing at
+            -- a stale spot is misleading, so it disappears immediately once
+            -- updates stop
+            if settings.arrow.enabled and Tracker.IsPositionKnown(key, nowMs) then
                 local deltaX = playerX - entry.wx
                 local deltaZ = playerZ - entry.wz
                 local distance = math.sqrt(deltaX * deltaX + deltaZ * deltaZ) / 100
-
-                if settings.beam.enabled then
-                    Beam.Show(key, entry.wx, entry.wy, entry.wz, cameraHeading, ageAlpha)
-                    beamDrawn = true
-                end
-                if settings.arrow.enabled and distance >= general.arrowHideBelow then
-                    Arrow.Show(key, deltaX, deltaZ, distance, cameraHeading, ageAlpha)
-                    arrowDrawn = true
-                end
-            end
-        end
-
-        -- Direction-only fallback: a compass bearing can't feed the beam, but
-        -- it keeps the arrow alive when no (fresh) position is known - e.g.
-        -- marked players outside the group. A recent position wins; a bearing
-        -- clearly fresher than the position takes over.
-        if not arrowDrawn and settings.arrow.enabled then
-            local bearing = Tracker.bearings[key]
-            if bearing and (not entry or bearing.atMs > entry.lastSeenMs + 2000) then
-                local bearingAlpha = Tracker.GetBearingAlpha(key, nowMs)
-                if bearingAlpha > 0 then
-                    Arrow.ShowBearing(key, bearing.heading, cameraHeading,
-                        (nowMs - bearing.atMs) / 1000, bearingAlpha)
+                local hideBelow = settings.arrow.override
+                    and settings.arrow.hideBelow or general.arrowHideBelow
+                if distance >= hideBelow then
+                    Arrow.Show(key, deltaX, deltaZ, distance, cameraHeading)
                     arrowDrawn = true
                 end
             end
@@ -158,7 +151,6 @@ end
 local PROBE_NAME = Addon.NAME .. 'Probe'
 local probeRunning = false
 local lastProbedUnit = ''
-local lastPinSummary
 
 -- Probe output goes to chat AND to LibDebugLogger, so results can be read
 -- from SavedVariables/LibDebugLogger.lua after /reloadui instead of copying
@@ -187,84 +179,12 @@ local function ProbeReticle()
     ProbeOut('  raw:   zone=%s pos=%s,%s,%s', tostring(rZone), tostring(rx), tostring(ry), tostring(rz))
 end
 
--- Logs the pins currently passing the compass center (type:description).
--- Used to find out whether target-marker pins are exposed there; the engine
--- draws them, but only center-overed pins are queryable from Lua.
-local compassProbeBroken = false
-
-local function ProbeCompassInner()
-    local container = COMPASS and COMPASS.container
-    local numPins = container:GetNumCenterOveredPins()
-    local summary = ''
-    for i = 1, numPins do
-        local part = tostring(container:GetCenterOveredPinType(i))
-            .. ':' .. tostring(container:GetCenterOveredPinDescription(i))
-        summary = summary == '' and part or (summary .. ' | ' .. part)
-    end
-    if summary ~= lastPinSummary then
-        lastPinSummary = summary
-        ProbeOut('[probe] compass center pins (%d): %s | camera heading %.3f', numPins,
-            summary == '' and '(none)' or summary, GetPlayerCameraHeading())
-    end
-end
-
-local function ProbeCompass()
-    if compassProbeBroken then return end
-    local ok, err = pcall(ProbeCompassInner)
-    if not ok then
-        compassProbeBroken = true
-        ProbeOut('[probe] compass probing FAILED: %s', tostring(err))
-    end
-end
-
-local function ProbeSelfTest()
-    local container = COMPASS and COMPASS.container
-    if not container then
-        ProbeOut('[probe] self-test: COMPASS.container NOT FOUND - compass probing disabled')
-        compassProbeBroken = true
-        return
-    end
-    if type(container.GetNumCenterOveredPins) ~= 'function' then
-        ProbeOut('[probe] self-test: center-over API missing on compass container')
-        compassProbeBroken = true
-        return
-    end
-    local ok, result = pcall(container.GetNumCenterOveredPins, container)
-    if ok then
-        ProbeOut('[probe] self-test OK, compass reachable (%d pins at center right now)', result)
-    else
-        compassProbeBroken = true
-        ProbeOut('[probe] self-test FAILED: %s', tostring(result))
-    end
-
-    -- one-time: dump pin type constants in the range we saw marker pins use,
-    -- to learn their official names
-    local found = {}
-    for globalName, value in zo_insecurePairs(_G) do
-        if type(value) == 'number' and value >= 200 and value <= 260
-            and type(globalName) == 'string'
-            and string.sub(globalName, 1, 13) == 'MAP_PIN_TYPE_' then
-            table.insert(found, globalName .. '=' .. value)
-        end
-    end
-    table.sort(found)
-    ProbeOut('[probe] pin types 200-260: %s', table.concat(found, ', '))
-end
-
-local function ProbeTick()
-    ProbeReticle()
-    ProbeCompass()
-end
-
 local function ToggleProbe()
     probeRunning = not probeRunning
     if probeRunning then
         lastProbedUnit = ''
-        lastPinSummary = nil
-        compassProbeBroken = false
         ProbeOut('[probe] ===== probe ON =====')
-        ProbeSelfTest()
-        EVENT_MANAGER:RegisterForUpdate(PROBE_NAME, 100, ProbeTick)
+        EVENT_MANAGER:RegisterForUpdate(PROBE_NAME, 100, ProbeReticle)
         d('[' .. Addon.NAME .. '] probe ON - output also goes to LibDebugLogger. /ndgcrown probe to stop.')
     else
         EVENT_MANAGER:UnregisterForUpdate(PROBE_NAME)
@@ -290,19 +210,10 @@ function Addon.SlashCommand(text)
                 count = count + 1
                 local deltaX, deltaZ = playerX - entry.wx, playerZ - entry.wz
                 local distance = math.sqrt(deltaX * deltaX + deltaZ * deltaZ) / 100
-                df('  %s: %s, %.0fm away, seen %.1fs ago', target.name,
-                    entry.name or '?', distance, (nowMs - entry.lastSeenMs) / 1000)
-            end
-            local bearing = Addon.Tracker.bearings[target.key]
-            if bearing then
-                count = count + 1
-                df('  %s: compass bearing %.2f, %.1fs old', target.name,
-                    bearing.heading, (nowMs - bearing.atMs) / 1000)
-            end
-            local names = Addon.Tracker.markNames[target.key]
-            if names then
-                df('  %s: watching for %s / %s', target.name,
-                    names.charName or '?', names.displayName or '?')
+                local state = Addon.Tracker.IsPositionKnown(target.key, nowMs)
+                    and 'live' or 'lingering'
+                df('  %s: %s, %.0fm away, seen %.1fs ago (%s)', target.name,
+                    entry.name or '?', distance, (nowMs - entry.lastSeenMs) / 1000, state)
             end
         end
         if count == 0 then d('  no tracked targets') end

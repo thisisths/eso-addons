@@ -1,33 +1,36 @@
 # NdgCrown
 
-An Elder Scrolls Online addon that shows a tall 3D beam and/or a direction arrow next to your reticle for the **group leader** ("the crown") and for units carrying **base-game target marks** — find your raid lead at a glance, and follow marked targets even when they are not in your group.
+An Elder Scrolls Online addon that shows a tall 3D beam and/or a direction arrow next to your reticle for the **group leader** ("the crown") and for units carrying **base-game target marks** — find your raid lead at a glance.
 
 ## Screenshot
 
-![NdgCrown settings panel with per-mark beam and arrow options](docs/crown.png)
+![NdgCrown settings panel with beam and arrow options](docs/main.png)
+![NdgCrown settings panel crown specific settings](docs/crown.png)
+![NdgCrown settings panel all marks](docs/targets.png)
 
-The settings panel: the group leader and each of the eight base-game target marks get their own beam/arrow toggles and colors.
+The settings panel: the group leader and each of the eight base-game target marks get their own beam/arrow toggles and colors, plus an optional per-target override of the arrow size/distance settings.
 
 ## Features
 
-- **Group leader**: a colored beam at the leader's position plus an arrow orbiting your reticle that points toward them (enabled by default, blue). Uses live group positions, so it is always accurate. Inactive while you are the leader yourself.
+- **Group leader**: a colored beam at the leader's position plus an arrow orbiting your reticle that points toward them (enabled by default, blue). Uses live group positions, so it is always accurate. Inactive while you are the leader yourself. When arrows overlap, the crown arrow always draws on top of the mark arrows.
 - **Target marks**: the same beam and arrow for units carrying any of the eight base-game target markers (Blue Square, Gold Star, Green Circle, Orange Triangle, Pink Moons, Purple Oblivion, Red Weapons, White Skull). Each mark has its own toggles and colors — defaults match the marker's color, all marks are disabled by default.
-- The arrow scales with distance, can show a distance label, and can hide when the target is closer than a configurable distance.
+- The arrow scales with distance, can show a distance label, and can hide when the target is closer than a configurable distance. Every target can optionally **override the global arrow size/distance settings** with its own values.
 - Optional **PvP only** mode: only active in Cyrodiil, Imperial City and Battlegrounds.
 
-## How mark tracking works (and its limits)
+## How tracking works (and its limits)
 
-The game restricts what addons can know about unit positions, so marks are tracked from three sources, best first:
+The game restricts what addons can know about unit positions. NdgCrown only ever draws from a real, known position — there are two sources:
 
-1. **Group members**: live, continuous positions — beam and arrow are always exact.
-2. **NPCs under your crosshair**: a position snapshot is taken whenever your reticle touches the marked NPC. The beam/arrow then point at the last known spot and fade out as the position ages (configurable timeout).
-3. **Players outside your group**: the game hides their positions completely. The arrow instead follows the mark's **compass pin** — whenever that pin crosses the middle of your compass, the direction is re-captured, and the label shows how old the direction is in seconds. Aim your crosshair at the marked unit once so the addon learns which compass pin belongs to which mark.
+1. **Group members**: live, continuous positions anywhere in the zone — beam and arrow are always exact.
+2. **NPCs under your crosshair**: positions are read while your reticle is on the marked NPC (works at close range only).
 
-This is what makes it possible to, for example, mark another group's leader in a PvP raid and keep an arrow pointing at them.
+Players outside your group cannot be tracked — the game hides their positions from addons completely.
+
+When a position stops updating, the **arrow disappears immediately** (an arrow pointing at a stale spot would be misleading), while the **beam keeps marking the last known position for 10 more seconds** — it marks a fixed spot in the world, so it stays useful as "last seen here" — fading out toward the end. A mark that is removed from a group member disappears right away instead of lingering.
 
 ## Settings
 
-Open the settings panel via **ESC > Settings > Addons > NdgCrown**. General options cover beam size and opacity, arrow sizing and behavior over distance, the distance label, and the mark position timeout; below that, every tracked target has its own submenu (beam on/off + color, arrow on/off + color).
+Open the settings panel via **ESC > Settings > Addons > NdgCrown**. General options cover beam size and opacity, arrow sizing and behavior over distance, and the distance label; below that, every tracked target has its own submenu (beam on/off + color, arrow on/off + color, and an "Override arrow size & distances" checkbox that unlocks per-target copies of the arrow sliders).
 
 If you enable the leader beam/arrow here, disable the "Follow the Crown" beam and arrow in RdK Group Tool to avoid duplicates.
 
@@ -35,8 +38,8 @@ If you enable the leader beam/arrow here, disable the "Follow the Crown" beam an
 
 | Command | Effect |
 |---------|--------|
-| `/ndgcrown` | Print a status overview: update loop, tracked targets, position/bearing ages |
-| `/ndgcrown probe` | Toggle a diagnostic probe that logs what the position and compass APIs return (also to LibDebugLogger) |
+| `/ndgcrown` | Print a status overview: update loop and tracked targets (distance, position age, live/lingering) |
+| `/ndgcrown probe` | Toggle a diagnostic probe that logs what the position APIs return for the unit under the crosshair (also to LibDebugLogger) |
 
 ## Installation
 

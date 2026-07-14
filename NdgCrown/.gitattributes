@@ -1,0 +1,8 @@
+# Repo-only files, excluded from the release zip built by git archive
+# (see .github/workflows/release.yml)
+.github export-ignore
+.gitattributes export-ignore
+.gitignore export-ignore
+README.md export-ignore
+CHANGELOG.md export-ignore
+docs export-ignore

@@ -1,6 +1,6 @@
 # NdgCrown
 
-An Elder Scrolls Online addon that shows a tall 3D beam and/or a direction arrow next to your reticle for the **group leader** ("the crown") and for units carrying **base-game target marks** — find your raid lead at a glance.
+An Elder Scrolls Online addon that shows a tall 3D beam, a direction arrow next to your reticle and/or a range ring on the ground for the **group leader** ("the crown") and for units carrying **base-game target marks** — find your raid lead at a glance.
 
 ## Screenshot
 
@@ -15,6 +15,7 @@ The settings panel: the group leader and each of the eight base-game target mark
 - **Group leader**: a colored beam at the leader's position plus an arrow orbiting your reticle that points toward them (enabled by default, blue). Uses live group positions, so it is always accurate. Inactive while you are the leader yourself. When arrows overlap, the crown arrow always draws on top of the mark arrows.
 - **Target marks**: the same beam and arrow for units carrying any of the eight base-game target markers (Blue Square, Gold Star, Green Circle, Orange Triangle, Pink Moons, Purple Oblivion, Red Weapons, White Skull). Each mark has its own toggles and colors — defaults match the marker's color, all marks are disabled by default.
 - The arrow scales with distance, can show a distance label, and can hide when the target is closer than a configurable distance. Every target can optionally **override the global arrow size/distance settings** with its own values.
+- **Range rings**: a ring on the ground around the leader or any mark with a configurable radius (e.g. 8m, to see whether you are in range of the leader's heals and shields). It turns green while you are inside (3D distance) and red outside — both colors configurable. Optionally also a ring around yourself.
 - Optional **PvP only** mode: only active in Cyrodiil, Imperial City and Battlegrounds.
 
 ## How tracking works (and its limits)
@@ -30,7 +31,7 @@ When a position stops updating, the **arrow disappears immediately** (an arrow p
 
 ## Settings
 
-Open the settings panel via **ESC > Settings > Addons > NdgCrown**. General options cover beam size and opacity, arrow sizing and behavior over distance, and the distance label; below that, every tracked target has its own submenu (beam on/off + color, arrow on/off + color, and an "Override arrow size & distances" checkbox that unlocks per-target copies of the arrow sliders).
+Open the settings panel via **ESC > Settings > Addons > NdgCrown**. General options cover beam size, opacity and visibility through terrain, range-ring opacity and the ring around yourself, arrow sizing and behavior over distance, and the distance label; below that, every tracked target has its own submenu (beam on/off + color, arrow on/off + color, range ring on/off + radius + in-range/out-of-range colors, and an "Override arrow size & distances" checkbox that unlocks per-target copies of the arrow sliders).
 
 If you enable the leader beam/arrow here, disable the "Follow the Crown" beam and arrow in RdK Group Tool to avoid duplicates.
 
@@ -40,6 +41,7 @@ If you enable the leader beam/arrow here, disable the "Follow the Crown" beam an
 |---------|--------|
 | `/ndgcrown` | Print a status overview: update loop and tracked targets (distance, position age, live/lingering) |
 | `/ndgcrown probe` | Toggle a diagnostic probe that logs what the position APIs return for the unit under the crosshair (also to LibDebugLogger) |
+| `/ndgcrown beamprobe` | Toggle a diagnostic probe that logs once per second where the leader beam is placed and why (to LibDebugLogger) |
 
 ## Installation
 

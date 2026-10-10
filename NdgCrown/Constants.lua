@@ -4,11 +4,12 @@ local Addon = NdgCrown
 
 Addon.NAME       = 'NdgCrown'
 Addon.SLASH      = '/ndgcrown'
-Addon.VERSION    = '0.4.0'   -- keep in sync with ## Version in the manifest
+Addon.VERSION    = '0.5.0'   -- keep in sync with ## Version in the manifest
 Addon.DB_VERSION = 1         -- bumping this WIPES saved variables
 
 Addon.BEAM_TEXTURE  = 'NdgCrown/Art/beam.dds'
 Addon.ARROW_TEXTURE = 'NdgCrown/Art/arrow.dds'
+Addon.RING_TEXTURE  = 'NdgCrown/Art/ring.dds'
 
 -- The tracked targets: the group leader plus the 8 base-game target markers.
 -- key is used for saved variables and controls; markerType is the game constant

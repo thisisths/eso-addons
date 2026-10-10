@@ -1,6 +1,6 @@
 local Addon = NdgCrown
 
-local UPDATE_INTERVAL_MS = 25
+local UPDATE_INTERVAL_MS = 0   -- every frame, so beams/rings don't jitter while moving
 local UPDATE_NAME = Addon.NAME .. 'Update'
 
 local logger
@@ -13,9 +13,10 @@ local function IsInPvPArea()
 end
 
 local function AnyTargetEnabled()
+    if Addon.db.selfRing.enabled then return true end
     for _, target in ipairs(Addon.TARGETS) do
         local settings = Addon.db.targets[target.key]
-        if settings.beam.enabled or settings.arrow.enabled then
+        if settings.beam.enabled or settings.arrow.enabled or settings.ring.enabled then
             return true
         end
     end
@@ -29,7 +30,7 @@ local updateRunning = false
 
 function Addon.OnUpdate()
     local nowMs = GetFrameTimeMilliseconds()
-    local Tracker, Beam, Arrow = Addon.Tracker, Addon.Beam, Addon.Arrow
+    local Tracker, Beam, Arrow, Ring = Addon.Tracker, Addon.Beam, Addon.Arrow, Addon.Ring
 
     Tracker.Update(nowMs)
 
@@ -37,8 +38,15 @@ function Addon.OnUpdate()
     if cameraHeading > math.pi then
         cameraHeading = cameraHeading - 2 * math.pi
     end
-    local playerZoneId, playerX, _, playerZ = GetUnitWorldPosition('player')
+    local playerZoneId, playerX, playerY, playerZ = GetUnitWorldPosition('player')
     local general = Addon.db.general
+
+    local selfRing = Addon.db.selfRing
+    if selfRing.enabled then
+        Ring.Show('self', playerX, playerY, playerZ, selfRing.radius, selfRing.color)
+    else
+        Ring.Hide('self')
+    end
 
     for _, target in ipairs(Addon.TARGETS) do
         local key = target.key
@@ -47,7 +55,7 @@ function Addon.OnUpdate()
         if entry and entry.zoneId ~= playerZoneId then
             entry = nil
         end
-        local beamDrawn, arrowDrawn = false, false
+        local beamDrawn, arrowDrawn, ringDrawn = false, false, false
 
         if entry then
             -- the beam marks a fixed spot, so it may linger on the last
@@ -74,10 +82,24 @@ function Addon.OnUpdate()
                     arrowDrawn = true
                 end
             end
+
+            -- the ring shows the current range, so like the arrow it only
+            -- shows while the position is live; in range = 3D distance
+            local ring = settings.ring
+            if ring.enabled and Tracker.IsPositionKnown(key, nowMs) then
+                local deltaX = playerX - entry.wx
+                local deltaY = playerY - entry.wy
+                local deltaZ = playerZ - entry.wz
+                local distance = math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ) / 100
+                local color = distance <= ring.radius and ring.inColor or ring.outColor
+                Ring.Show(key, entry.wx, entry.wy, entry.wz, ring.radius, color)
+                ringDrawn = true
+            end
         end
 
         if not beamDrawn then Beam.Hide(key) end
         if not arrowDrawn then Arrow.Hide(key) end
+        if not ringDrawn then Ring.Hide(key) end
     end
 end
 
@@ -95,6 +117,7 @@ local function StopUpdates()
     end
     Addon.Beam.HideAll()
     Addon.Arrow.HideAll()
+    Addon.Ring.HideAll()
 end
 
 -- (Re)evaluate whether the update loop should run. Called after loading
@@ -131,6 +154,7 @@ function Addon.OnAddOnLoaded(eventCode, addonName)
     Addon.db = ZO_SavedVars:NewAccountWide('NdgCrownDB', Addon.DB_VERSION, nil, Addon.defaults)
 
     Addon.Beam.Initialize()
+    Addon.Ring.Initialize()
     Addon.Arrow.Initialize()
     Addon.Settings:Initialize()
 
@@ -193,6 +217,70 @@ local function ToggleProbe()
 end
 
 ---------------------------------------------------------------------------
+-- Beam probe: /ndgcrown beamprobe
+-- Logs once per second what the leader beam is fed and where its control
+-- actually sits. Positive control: a dummy control with its own 3D render
+-- space, set to origin 0 when the probe starts. If the game shifts 3D
+-- render-space origins when its floating world origin moves (the suspected
+-- cause of the old misplaced beams), the dummy's origin drifts away from 0.
+---------------------------------------------------------------------------
+local BEAM_PROBE_NAME = Addon.NAME .. 'BeamProbe'
+local beamProbeRunning = false
+local probeAnchor
+
+local function Fmt(x, y, z)
+    return string.format('%.2f,%.2f,%.2f', x or 0, y or 0, z or 0)
+end
+
+local function ProbeBeam()
+    local ax, ay, az = probeAnchor:Get3DRenderSpaceOrigin()
+    local wx0, wy0, wz0 = WorldPositionToGuiRender3DPosition(0, 0, 0)
+    ProbeOut('[beamprobe] anchor origin=%s | render pos of world 0=%s', Fmt(ax, ay, az), Fmt(wx0, wy0, wz0))
+
+    local _, px, py, pz = GetUnitWorldPosition('player')
+    ProbeOut('  player world=%s render=%s', Fmt(px, py, pz), Fmt(WorldPositionToGuiRender3DPosition(px, py, pz)))
+
+    local leaderTag = GetGroupLeaderUnitTag()
+    if not IsUnitGrouped('player') or leaderTag == '' then
+        ProbeOut('  not grouped')
+        return
+    end
+    local wZone, wx, wy, wz = GetUnitWorldPosition(leaderTag)
+    local rZone, rx, ry, rz = GetUnitRawWorldPosition(leaderTag)
+    local dx, dy, dz = (px - wx) / 100, (py - wy) / 100, (pz - wz) / 100
+    ProbeOut('  leader %s (%s) zone=%s/%s dist=%.1fm dy=%.1fm', leaderTag, GetUnitDisplayName(leaderTag),
+        tostring(wZone), tostring(rZone), math.sqrt(dx * dx + dz * dz), dy)
+    ProbeOut('  leader world=%s raw=%s', Fmt(wx, wy, wz), Fmt(rx, ry, rz))
+
+    local beam = Addon.Beam.GetControl('leader')
+    local bx, by, bz = beam:Get3DRenderSpaceOrigin()
+    local ex, ey, ez = WorldPositionToGuiRender3DPosition(wx, wy + Addon.db.general.beamHeight * 50, wz)
+    ProbeOut('  beam origin=%s expected=%s hidden=%s alpha=%.2f', Fmt(bx, by, bz), Fmt(ex, ey, ez),
+        tostring(beam:IsHidden()), beam:GetAlpha())
+    local window = Addon.GetWorldWindow()
+    ProbeOut('  window hidden=%s alpha=%.2f loop=%s', tostring(window:IsHidden()), window:GetAlpha(),
+        tostring(updateRunning))
+end
+
+local function ToggleBeamProbe()
+    beamProbeRunning = not beamProbeRunning
+    if beamProbeRunning then
+        if not probeAnchor then
+            probeAnchor = WINDOW_MANAGER:CreateControl(nil, Addon.GetWorldWindow(), CT_TEXTURE)
+            probeAnchor:Create3DRenderSpace()
+            probeAnchor:SetHidden(true)
+        end
+        probeAnchor:Set3DRenderSpaceOrigin(0, 0, 0)
+        ProbeOut('[beamprobe] ===== beam probe ON (v%s) =====', Addon.VERSION)
+        EVENT_MANAGER:RegisterForUpdate(BEAM_PROBE_NAME, 1000, ProbeBeam)
+        d('[' .. Addon.NAME .. '] beam probe ON - logs to LibDebugLogger. /ndgcrown beamprobe to stop.')
+    else
+        EVENT_MANAGER:UnregisterForUpdate(BEAM_PROBE_NAME)
+        ProbeOut('[beamprobe] ===== beam probe off =====')
+    end
+end
+
+---------------------------------------------------------------------------
 -- Slash command: /ndgcrown  (status overview, useful for testing)
 ---------------------------------------------------------------------------
 function Addon.SlashCommand(text)
@@ -219,6 +307,8 @@ function Addon.SlashCommand(text)
         if count == 0 then d('  no tracked targets') end
     elseif cmd == 'probe' then
         ToggleProbe()
+    elseif cmd == 'beamprobe' then
+        ToggleBeamProbe()
     else
         d('[' .. Addon.NAME .. '] Unknown command: ' .. cmd)
     end

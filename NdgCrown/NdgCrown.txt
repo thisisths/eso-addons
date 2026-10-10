@@ -1,8 +1,8 @@
 ## Title: NdgCrown
 ## Description: Beam and direction arrow for the group leader and for base-game target marks.
 ## Author: Ndg
-## Version: 0.4.0
-## AddOnVersion: 4
+## Version: 0.5.0
+## AddOnVersion: 5
 ## APIVersion: 101050 101051
 ## SavedVariables: NdgCrownDB
 ## DependsOn: LibAddonMenu-2.0>=30
@@ -17,6 +17,7 @@ Constants.lua
 Defaults.lua
 Tracker.lua
 Beam.lua
+Ring.lua
 Arrow.lua
 Core.lua
 Settings.lua

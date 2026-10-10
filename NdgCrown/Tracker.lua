@@ -28,7 +28,7 @@ Tracker.entries = {}
 
 local function IsTargetWanted(targetKey)
     local settings = Addon.db.targets[targetKey]
-    return settings.beam.enabled or settings.arrow.enabled
+    return settings.beam.enabled or settings.arrow.enabled or settings.ring.enabled
 end
 
 -- groupTag/markerType are only set when the position came from a group

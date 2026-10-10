@@ -1,7 +1,7 @@
 ## Title: NdgCrown
 ## Description: Beam and direction arrow for the group leader and for base-game target marks.
 ## Author: Ndg
-## Version: 0.5.0
+## Version: 1.0.0
 ## AddOnVersion: 5
 ## APIVersion: 101050 101051
 ## SavedVariables: NdgCrownDB

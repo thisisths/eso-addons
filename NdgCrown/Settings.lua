@@ -30,7 +30,7 @@ function Addon.Settings:Initialize()
     local panelData = {
         type = 'panel',
         name = Addon.NAME,
-        author = 'Ndg',
+        author = '@Nidhoeggr',
         version = Addon.VERSION,
         registerForRefresh = true,
         registerForDefaults = true,

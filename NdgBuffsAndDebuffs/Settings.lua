@@ -39,7 +39,7 @@ function Settings:Initialize()
         type                = 'panel',
         name                = 'NdgBuffsAndDebuffs',
         displayName         = 'Ndg Buffs & Debuffs',
-        author              = 'Ndg',
+        author              = '@Nidhoeggr',
         version             = Addon.VERSION,
         slashCommand        = '/ndgbuffs settings',
         registerForRefresh  = true,

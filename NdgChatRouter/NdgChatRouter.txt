@@ -1,8 +1,8 @@
 ## Title: NdgChatRouter
 ## Description: Shows selected system messages (PvP kill feed, friend online/offline, keep attacks, group changes) in custom chat tabs.
 ## Author: @Nidhoeggr
-## Version: 0.1.0
-## AddOnVersion: 100
+## Version: 0.0.1
+## AddOnVersion: 1
 ## APIVersion: 101051 101052
 ## SavedVariables: NdgChatRouterDB
 ## DependsOn: LibAddonMenu-2.0>=30

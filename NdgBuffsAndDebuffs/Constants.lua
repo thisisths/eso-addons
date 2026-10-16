@@ -2,7 +2,7 @@ local Addon = _G['NdgBuffsAndDebuffs']
 
 Addon.NAME        = 'NdgBuffsAndDebuffs'
 Addon.SLASH       = '/ndgbuffs'
-Addon.VERSION     = '1.0.0'
+Addon.VERSION     = '0.0.1'
 Addon.DB_VERSION  = 1
 
 -- Display group IDs

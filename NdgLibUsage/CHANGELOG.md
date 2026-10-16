@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0
+## 0.0.1
 
 - First version. The Add-Ons screen shows "Used by x/y" or "Unused" on libraries.
   - Hover the text for the list of users; click it or expand the row to see them in the row.

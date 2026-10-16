@@ -1,8 +1,8 @@
 ## Title: NdgLibUsage
 ## Description: Shows on every library in the Add-Ons screen which addons use it ("Used by 2/3" = 2 active of 3 installed), so unused libraries are easy to spot.
 ## Author: @Nidhoeggr
-## Version: 0.1.0
-## AddOnVersion: 100
+## Version: 0.0.1
+## AddOnVersion: 1
 ## APIVersion: 101051 101052
 ## IsLibrary: false
 ## OptionalDependsOn: AddonSelector LibDebugLogger

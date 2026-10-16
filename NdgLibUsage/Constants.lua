@@ -4,7 +4,7 @@ local Addon = NdgLibUsage
 
 Addon.NAME    = 'NdgLibUsage'
 Addon.SLASH   = '/ndglibusage'
-Addon.VERSION = '0.1.0'   -- keep in sync with ## Version in the manifest
+Addon.VERSION = '0.0.1'   -- keep in sync with ## Version in the manifest
 
 -- How a single user (dependent addon) of a library counts
 Addon.STATUS_ACTIVE   = 1   -- enabled and actually needed (a normal addon, or a library something needs)

@@ -4,7 +4,7 @@ local Addon = NdgChatRouter
 
 Addon.NAME       = 'NdgChatRouter'
 Addon.SLASH      = '/ndgchat'
-Addon.VERSION    = '0.1.0'   -- keep in sync with ## Version in the manifest
+Addon.VERSION    = '0.0.1'   -- keep in sync with ## Version in the manifest
 Addon.DB_VERSION = 1         -- bumping this WIPES saved variables
 
 -- Message groups the user can route to a tab. 'key' is what gets stored in

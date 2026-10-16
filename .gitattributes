@@ -1,0 +1,12 @@
+# Repo-only files, excluded from the release zips built by git archive
+# (see .github/workflows/release.yml). Patterns without a slash match at
+# any depth, so this one file covers every addon folder. Directories are
+# listed by name (not name/**) so not even an empty folder entry lands in
+# a zip.
+.github export-ignore
+.gitattributes export-ignore
+.gitignore export-ignore
+README.md export-ignore
+CHANGELOG.md export-ignore
+docs export-ignore
+tools export-ignore

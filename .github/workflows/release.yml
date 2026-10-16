@@ -1,0 +1,65 @@
+# Release pipeline for the Ndg* ESO addons in this repo.
+#
+# Every addon is released on its own: push a tag <Name>/v<Version>
+# (e.g. NdgCrown/v1.0.1) and this builds an esoui.com-ready zip of that one
+# folder (addon folder at the zip root, repo-only files excluded via
+# export-ignore entries in .gitattributes) and attaches it to a GitHub
+# release. Release notes start at the previous tag of the same addon, so
+# they never span another addon's changes.
+name: Release
+
+on:
+  push:
+    tags:
+      - 'Ndg*/v[0-9]*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # all tags, to find this addon's previous release
+
+      - name: Read addon name, check tag matches manifest version
+        id: addon
+        run: |
+          name="${GITHUB_REF_NAME%%/*}"
+          version="${GITHUB_REF_NAME#*/v}"
+          manifest="$name/$name.txt"
+          if [ ! -f "$manifest" ]; then
+            echo "tag $GITHUB_REF_NAME: no manifest $manifest in this commit" >&2
+            exit 1
+          fi
+          manifest_version="$(sed -n 's/^## Version: *//p' "$manifest" | tr -d '[:space:]')"
+          if [ "$version" != "$manifest_version" ]; then
+            echo "tag $GITHUB_REF_NAME does not match '## Version: $manifest_version' in $manifest - bump the manifest (and any Lua version constant) first" >&2
+            exit 1
+          fi
+          prev="$(git tag -l "$name/v*" --sort=-v:refname | grep -A1 -xF "$GITHUB_REF_NAME" | sed -n 2p)"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "prev=$prev" >> "$GITHUB_OUTPUT"
+
+      - name: Build zip
+        env:
+          NAME: ${{ steps.addon.outputs.name }}
+          VERSION: ${{ steps.addon.outputs.version }}
+        run: |
+          git archive --format=zip -o "$NAME-$VERSION.zip" HEAD "$NAME"
+          echo "zip contents:"
+          unzip -l "$NAME-$VERSION.zip"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NAME: ${{ steps.addon.outputs.name }}
+          VERSION: ${{ steps.addon.outputs.version }}
+          PREV: ${{ steps.addon.outputs.prev }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "$NAME-$VERSION.zip" \
+            --title "$NAME $VERSION" \
+            --generate-notes ${PREV:+--notes-start-tag "$PREV"}

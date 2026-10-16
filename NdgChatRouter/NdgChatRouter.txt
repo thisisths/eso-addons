@@ -1,0 +1,19 @@
+## Title: NdgChatRouter
+## Description: Shows selected system messages (PvP kill feed, friend online/offline, keep attacks, group changes) in custom chat tabs.
+## Author: @Nidhoeggr
+## Version: 0.1.0
+## AddOnVersion: 100
+## APIVersion: 101051 101052
+## SavedVariables: NdgChatRouterDB
+## DependsOn: LibAddonMenu-2.0>=30
+## OptionalDependsOn: pChat LibDebugLogger
+
+; This Add-on is not created by, affiliated with or sponsored by ZeniMax Media Inc. or its affiliates.
+; The Elder Scrolls® and related logos are registered trademarks or trademarks of ZeniMax Media Inc.
+; in the United States and/or other countries. All rights reserved.
+; You can read the full terms at https://account.elderscrollsonline.com/add-on-terms
+
+Constants.lua
+Defaults.lua
+Core.lua
+Settings.lua

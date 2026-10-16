@@ -1,0 +1,18 @@
+## Title: NdgLibUsage
+## Description: Shows on every library in the Add-Ons screen which addons use it ("Used by 2/3" = 2 active of 3 installed), so unused libraries are easy to spot.
+## Author: @Nidhoeggr
+## Version: 0.1.0
+## AddOnVersion: 100
+## APIVersion: 101051 101052
+## IsLibrary: false
+## OptionalDependsOn: AddonSelector LibDebugLogger
+
+; This Add-on is not created by, affiliated with or sponsored by ZeniMax Media Inc. or its affiliates.
+; The Elder Scrolls® and related logos are registered trademarks or trademarks of ZeniMax Media Inc.
+; in the United States and/or other countries. All rights reserved.
+; You can read the full terms at https://account.elderscrollsonline.com/add-on-terms
+
+Constants.lua
+Graph.lua
+AddOnManagerUI.lua
+Core.lua

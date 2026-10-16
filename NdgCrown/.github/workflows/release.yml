@@ -1,0 +1,60 @@
+# Standard release pipeline for Ndg* ESO addons.
+#
+# Push a version tag (v0.4.0 or 0.4.0) and this builds an esoui.com-ready
+# zip (addon folder at the zip root, repo-only files excluded via
+# export-ignore entries in .gitattributes) and attaches it to a GitHub
+# release. Generic: the addon name comes from the single <Name>.txt
+# manifest at the repo root, so this file needs no per-addon changes.
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]*'
+      - '[0-9]*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read addon name, check tag matches manifest version
+        id: addon
+        run: |
+          shopt -s nullglob
+          manifests=(*.txt)
+          if [ "${#manifests[@]}" -ne 1 ]; then
+            echo "expected exactly one manifest .txt at the repo root, found: ${manifests[*]:-none}" >&2
+            exit 1
+          fi
+          name="$(basename "${manifests[0]}" .txt)"
+          version="${GITHUB_REF_NAME#v}"
+          manifest_version="$(sed -n 's/^## Version: *//p' "${manifests[0]}" | tr -d '[:space:]')"
+          if [ "$version" != "$manifest_version" ]; then
+            echo "tag $GITHUB_REF_NAME does not match '## Version: $manifest_version' in ${manifests[0]} - bump the manifest (and any Lua version constant) first" >&2
+            exit 1
+          fi
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Build zip
+        run: |
+          git archive --format=zip \
+            --prefix='${{ steps.addon.outputs.name }}/' \
+            -o '${{ steps.addon.outputs.name }}-${{ steps.addon.outputs.version }}.zip' \
+            HEAD
+          echo "zip contents:"
+          unzip -l '${{ steps.addon.outputs.name }}-${{ steps.addon.outputs.version }}.zip'
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            '${{ steps.addon.outputs.name }}-${{ steps.addon.outputs.version }}.zip' \
+            --title '${{ steps.addon.outputs.name }} ${{ steps.addon.outputs.version }}' \
+            --generate-notes

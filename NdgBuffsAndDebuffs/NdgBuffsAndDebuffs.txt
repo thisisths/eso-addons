@@ -1,0 +1,22 @@
+## Title: NdgBuffsAndDebuffs
+## Description: Tracks and displays buffs, debuffs, and reminders in configurable display groups.
+## Author: Ndg
+## Version: 1.0.0
+## AddOnVersion: 100
+## APIVersion: 101044 101045
+## SavedVariables: NdgBuffsAndDebuffsDB
+## DependsOn: LibAddonMenu-2.0>=30 LibMediaProvider-1.0>=13
+
+NdgBuffsAndDebuffs.xml
+
+Constants.lua
+Defaults.lua
+
+Core.lua
+
+AuraControl.lua
+DisplayFrame.lua
+BuffTracker.lua
+ReminderTracker.lua
+
+Settings.lua

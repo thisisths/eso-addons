@@ -27,6 +27,8 @@ local BEAM_FADE_PORTION = 0.3    -- fade out over the last part of the linger
 Tracker.entries = {}
 
 local function IsTargetWanted(targetKey)
+    -- active extensions (e.g. NdgUrge) need the leader's distance
+    if targetKey == 'leader' and Addon.extensionsActive then return true end
     local settings = Addon.db.targets[targetKey]
     return settings.beam.enabled or settings.arrow.enabled or settings.ring.enabled
 end

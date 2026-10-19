@@ -8,10 +8,6 @@ local logger
 ---------------------------------------------------------------------------
 -- Helpers
 ---------------------------------------------------------------------------
-local function IsInPvPArea()
-    return IsPlayerInAvAWorld() or IsActiveWorldBattleground()
-end
-
 local function AnyTargetEnabled()
     if Addon.db.selfRing.enabled then return true end
     for _, target in ipairs(Addon.TARGETS) do
@@ -27,6 +23,8 @@ end
 -- Update loop
 ---------------------------------------------------------------------------
 local updateRunning = false
+local activeExtensions = {}   -- extensions whose IsActive() was true at the last refresh
+Addon.extensionsActive = false
 
 function Addon.OnUpdate()
     local nowMs = GetFrameTimeMilliseconds()
@@ -101,6 +99,10 @@ function Addon.OnUpdate()
         if not arrowDrawn then Arrow.Hide(key) end
         if not ringDrawn then Ring.Hide(key) end
     end
+
+    for _, extension in ipairs(activeExtensions) do
+        extension.OnUpdate(nowMs)
+    end
 end
 
 local function StartUpdates()
@@ -118,14 +120,30 @@ local function StopUpdates()
     Addon.Beam.HideAll()
     Addon.Arrow.HideAll()
     Addon.Ring.HideAll()
+    for _, extension in ipairs(Addon.extensions) do
+        extension.OnStop()
+    end
 end
 
 -- (Re)evaluate whether the update loop should run. Called after loading
--- screens and whenever relevant settings change.
+-- screens and whenever relevant settings change (also by extensions).
 function Addon.RefreshActivation()
     if not Addon.db then return end
-    local shouldRun = AnyTargetEnabled()
-        and (not Addon.db.general.pvpOnly or IsInPvPArea())
+
+    -- IsActive() is evaluated here only, not per frame; inactive extensions
+    -- hide their stuff right away even if the loop keeps running
+    activeExtensions = {}
+    for _, extension in ipairs(Addon.extensions) do
+        if extension.IsActive() then
+            table.insert(activeExtensions, extension)
+        else
+            extension.OnStop()
+        end
+    end
+    Addon.extensionsActive = #activeExtensions > 0
+
+    local shouldRun = (AnyTargetEnabled() or Addon.extensionsActive)
+        and (not Addon.db.general.pvpOnly or Addon.IsInPvPArea())
     if shouldRun then
         StartUpdates()
     else
@@ -139,7 +157,16 @@ end
 ---------------------------------------------------------------------------
 -- Initialization
 ---------------------------------------------------------------------------
+local settingsInitialized = false
+
 function Addon.OnPlayerActivated()
+    -- extensions load after NdgCrown, so the settings panel (which shows
+    -- their submenus) is built once all addons are loaded
+    if not settingsInitialized then
+        settingsInitialized = true
+        Addon.Settings:Initialize()
+    end
+
     -- world positions are per-zone; stale entries would point at nonsense
     Addon.Tracker.Reset()
     Addon.RefreshActivation()
@@ -156,7 +183,6 @@ function Addon.OnAddOnLoaded(eventCode, addonName)
     Addon.Beam.Initialize()
     Addon.Ring.Initialize()
     Addon.Arrow.Initialize()
-    Addon.Settings:Initialize()
 
     SLASH_COMMANDS[Addon.SLASH] = Addon.SlashCommand
 
@@ -305,6 +331,13 @@ function Addon.SlashCommand(text)
             end
         end
         if count == 0 then d('  no tracked targets') end
+        for _, extension in ipairs(Addon.extensions) do
+            local active = false
+            for _, activeExtension in ipairs(activeExtensions) do
+                if activeExtension == extension then active = true end
+            end
+            d('  extension ' .. extension.name .. ': ' .. (active and 'active' or 'inactive'))
+        end
     elseif cmd == 'probe' then
         ToggleProbe()
     elseif cmd == 'beamprobe' then

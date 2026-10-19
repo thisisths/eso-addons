@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.0
+- New: extension support. Extension addons such as NdgUrge (the "Stop Zerging" warning) use NdgCrown's leader tracking and add their settings as a submenu to NdgCrown's settings panel.
+- `/ndgcrown` also lists the installed extensions and whether they are active.
+
 ## 1.0.1
 - The author is now shown as @Nidhoeggr in the add-on list and the settings panel.
 - Updated for the current game version (API 101051, next PTS 101052), so the addon is no longer listed as "Out of date".

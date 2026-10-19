@@ -8,6 +8,7 @@ Elder Scrolls Online addons by @Nidhoeggr. Each top-level folder is one addon, a
 | [NdgChatRouter](NdgChatRouter/) | Shows selected system messages (PvP kill feed, friend online/offline, keep attacks, group changes) in custom chat tabs. |
 | [NdgCrown](NdgCrown/) | Beam and direction arrow for the group leader and for base-game target marks. |
 | [NdgLibUsage](NdgLibUsage/) | Shows on every library in the Add-Ons screen which addons use it, so unused libraries are easy to spot. |
+| [NdgUrge](NdgUrge/) | Extension for NdgCrown: a big "Stop Zerging" warning when you are too far from the group leader. |
 
 ## Installation
 

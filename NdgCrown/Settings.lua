@@ -313,5 +313,16 @@ function Addon.Settings:Initialize()
         })
     end
 
+    -- one submenu per extension addon (see Extensions.lua)
+    for _, extension in ipairs(Addon.extensions) do
+        if extension.GetOptions then
+            table.insert(options, {
+                type = 'submenu',
+                name = extension.title or extension.name,
+                controls = extension.GetOptions(),
+            })
+        end
+    end
+
     LAM:RegisterOptionControls(Addon.NAME .. 'Options', options)
 end

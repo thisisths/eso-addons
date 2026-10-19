@@ -35,11 +35,15 @@ Open the settings panel via **ESC > Settings > Addons > NdgCrown**. General opti
 
 If you enable the leader beam/arrow here, disable the "Follow the Crown" beam and arrow in RdK Group Tool to avoid duplicates.
 
+## Extensions
+
+Other addons can build on NdgCrown's leader tracking and add their settings as a submenu to NdgCrown's settings panel. [NdgUrge](../NdgUrge/) uses this to show a big "Stop Zerging" warning when you are too far from the group leader. Extension authors: the API is documented at the top of `Extensions.lua`.
+
 ## Slash commands
 
 | Command | Effect |
 |---------|--------|
-| `/ndgcrown` | Print a status overview: update loop and tracked targets (distance, position age, live/lingering) |
+| `/ndgcrown` | Print a status overview: update loop, tracked targets (distance, position age, live/lingering) and extensions |
 | `/ndgcrown probe` | Toggle a diagnostic probe that logs what the position APIs return for the unit under the crosshair (also to LibDebugLogger) |
 | `/ndgcrown beamprobe` | Toggle a diagnostic probe that logs once per second where the leader beam is placed and why (to LibDebugLogger) |
 

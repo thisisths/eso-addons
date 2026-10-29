@@ -31,7 +31,7 @@ The [release workflow](.github/workflows/release.yml) then:
 
 ## Development
 
-ESO only loads addons from `AddOns\<Name>\`, so this repo is linked into the game instead of copied. Clone it next to the `AddOns` folder, then create one directory junction per addon:
+ESO only loads addons from `AddOns\<Name>\`, so this repo is linked into the game instead of copied. Clone it next to the `AddOns` folder, then create one link per addon (a directory junction on Windows, a symlink on macOS):
 
 ```powershell
 cd "$env:USERPROFILE\Documents\Elder Scrolls Online\live"
@@ -39,6 +39,14 @@ git clone https://github.com/thisisths/eso-addons.git
 powershell -ExecutionPolicy Bypass -File eso-addons\tools\link-addons.ps1
 ```
 
+On macOS, with [PowerShell](https://learn.microsoft.com/powershell/scripting/install/installing-powershell-on-macos) installed (`brew install powershell`):
+
+```sh
+cd ~/Documents/"Elder Scrolls Online"/live
+git clone https://github.com/thisisths/eso-addons.git
+pwsh -File eso-addons/tools/link-addons.ps1
+```
+
 - Use `-AddOnsPath <path>` if the repo is not next to `AddOns`.
 - Re-run the script after adding an addon folder or moving the repo. It never touches real folders.
-- Remove a junction with `cmd /c rmdir AddOns\<Name>`. In Windows PowerShell 5.1, `Remove-Item -Recurse` on a junction also deletes the files in this repo.
+- Remove a link with `cmd /c rmdir AddOns\<Name>` on Windows or `rm AddOns/<Name>` on macOS (no `-r`, no trailing slash). In Windows PowerShell 5.1, `Remove-Item -Recurse` on a junction also deletes the files in this repo.

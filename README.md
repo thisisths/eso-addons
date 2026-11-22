@@ -4,6 +4,7 @@ Elder Scrolls Online addons by @Nidhoeggr. Each top-level folder is one addon, a
 
 | Addon | What it does |
 |---|---|
+| [NdgAdvancedFiltersExtension](NdgAdvancedFiltersExtension/) | "Not collected" filter for set pieces, style pages, recipes, motifs and other things you can still collect or learn: a checkbox on the vendor's Buy tab and an entry in AdvancedFilters' dropdown. |
 | [NdgBuffsAndDebuffs](NdgBuffsAndDebuffs/) | Tracks and displays buffs, debuffs, and reminders in configurable display groups. |
 | [NdgChatRouter](NdgChatRouter/) | Shows selected system messages (PvP kill feed, friend online/offline, keep attacks, group changes) in custom chat tabs. |
 | [NdgCrown](NdgCrown/) | Beam and direction arrow for the group leader and for base-game target marks. |
